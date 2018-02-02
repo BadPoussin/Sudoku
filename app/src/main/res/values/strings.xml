@@ -1,0 +1,22 @@
+<resources>
+	<string name="app_name">Sudoku</string>
+	<string name="main_title">Sudoku</string>
+	<string name="continue_label">Continuer partie</string>
+	<string name="new_game_label">Commencer nouvelle partie</string>
+	<string name="typePartie">Type de la partie</string>
+	<string name="button9Text">9</string>
+	<string name="button8Text">8</string>
+	<string name="button7Text">7</string>
+	<string name="button6Text">6</string>
+	<string name="button5Text">5</string>
+	<string name="button4Text">4</string>
+	<string name="button3Text">3</string>
+	<string name="button2Text">2</string>
+	<string name="button1Text">1</string>
+	<string name="TypeGame">Nom du niveau : </string>
+	<string name="gameDuration">Durée : </string>
+	<string name="strNumber">Bouton sélectionné :</string>
+	<string name="deleteString">Effacer</string>
+	<string name="continueGame">Continuer partie</string>
+
+</resources>
