@@ -22,8 +22,11 @@
 		/>
 		<activity
 				android:name=".SelectLevelActivity"
-		          android:screenOrientation="portrait"
+				android:screenOrientation="portrait"
+		/>
+		<activity
+				android:name=".SelectContinueLevelActivity"
+				android:screenOrientation="portrait"
 		/>
 	</application>
-
 </manifest>

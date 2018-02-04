@@ -3,7 +3,6 @@ package com.example.adufresne.sudoku;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -51,7 +50,7 @@ public class SelectLevelActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
                 Intent intent = new Intent(SelectLevelActivity.this, GameActivity.class);
                 intent.putExtra("typeGame", grid.getItemAtPosition(position).toString().substring(9, grid.getItemAtPosition(position).toString().length()));
-                Log.d("TEST", "Start intent with type : " + grid.getItemAtPosition(position).toString().substring(9, grid.getItemAtPosition(position).toString().length()));
+                intent.putExtra("isAlreadyStarted", "false");
                 startActivity(intent);
             }
         });

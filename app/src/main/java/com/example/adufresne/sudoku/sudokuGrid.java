@@ -11,6 +11,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 
+import java.sql.SQLException;
+
 public class sudokuGrid extends View implements View.OnTouchListener {
     private Paint rectColor = new Paint();
     private Paint writeText = new Paint();
@@ -37,7 +39,6 @@ public class sudokuGrid extends View implements View.OnTouchListener {
     }
 
     public void onDraw(Canvas canvas) {
-        Log.d("TEST", "BEGIN DRAW");
         rectColor.setColor(Color.WHITE);
         writeText.setTextSize(100);
         canvas.drawColor(Color.BLACK);
@@ -60,12 +61,25 @@ public class sudokuGrid extends View implements View.OnTouchListener {
         }
     }
 
-    private void updateProgression (String[][] dataSet, int zeroLeft, int zeroCounter, int timer) {
+    private void updateProgression(String[][] dataSet, int zeroLeft, int zeroCounter, int timer) {
         int progression = (zeroLeft * 100) / zeroCounter;
-        dataBase.saveGame(level, progression, zeroCounter, dataSet, timer);
+        StringBuilder data = new StringBuilder();
+        StringBuilder locked = new StringBuilder();
+
+        for (int columnCount = 0; columnCount < 9; columnCount++) {
+            for (int rawCount = 0; rawCount < 9; rawCount++) {
+                if (!dataSet[rawCount][columnCount].equals("")) data.append(dataSet[rawCount][columnCount]);
+                else data.append("0");
+                if (dataLocked[rawCount][columnCount]) locked.append("1");
+                else locked.append("0");
+            }
+        }
+
+        dataBase.open(context);
+        dataBase.saveGame(level, progression, zeroCounter, data.toString(), locked.toString(), timer);
     }
 
-    public void updateTimer (int counter) {
+    public void updateTimer(int counter) {
         timeCounter = counter;
     }
 

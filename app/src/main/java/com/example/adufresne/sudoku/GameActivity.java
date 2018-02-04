@@ -1,5 +1,7 @@
 package com.example.adufresne.sudoku;
 
+import android.database.Cursor;
+import android.database.SQLException;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -17,46 +19,80 @@ import java.util.TimerTask;
 public class GameActivity extends AppCompatActivity implements View.OnTouchListener {
     private String[][] dataSet;
     private boolean[][] dataLocked = new boolean[9][9];
-    private int timeElapsed;
+    private int timeElapsed = 0;
     private int zeroCounter = 0;
+    private boolean isContinuing = false;
+    private com.example.adufresne.sudoku.sudokuGrid myView;
     Button button1, button2, button3, button4, button5, button6, button7, button8, button9, deleteButton;
     GridView sudokuGrid;
     TextView typeGame, durationGame, numberSelected;
-    private com.example.adufresne.sudoku.sudokuGrid myView = findViewById(R.id.sudokuGrid);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d("TEST", "Entrée dans onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
         String numberGame = getIntent().getStringExtra("typeGame");
+        String isAlreadyStarted = getIntent().getStringExtra("isAlreadyStarted");
         Timer timer = new Timer();
         startTimer(timer);
 
-        int fileRessourceId = R.raw.list_problem_1;
-
-        InputStream is = this.getResources().openRawResource(fileRessourceId);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-        String str;
-        String labelGame = "";
         int lineNumber = 0;
+        String labelGame = "";
 
-        if (is != null) {
+        //Gérer le cas si la grille est déjà commencée
+
+        if (isAlreadyStarted.equals("true")) {
+            BDD dataBase = new BDD();
+            lineNumber = Integer.parseInt(numberGame);
+            labelGame = "Niveau " + String.valueOf(lineNumber + 1);
+            String grille = "";
+            String locked = "";
+            isContinuing = true;
+
             try {
-                while ((str = reader.readLine()) != null) {
-                    if (numberGame.equals(String.valueOf((lineNumber+1)))) {
-                        dataSet = SetNumberList(str);
-                        labelGame = "Niveau " + String.valueOf(lineNumber + 1);
-                        break;
-                    }
-                    else lineNumber++;
+                dataBase.open(this);
+                Cursor levelInformations = dataBase.getSingleLevel(lineNumber);
+
+                while (levelInformations.moveToNext()) {
+                    //int zeroTotal = levelInformations.getInt(levelInformations.getColumnIndex("zeroTotal"));
+                    grille = levelInformations.getString(levelInformations.getColumnIndex("grille"));
+                    locked = levelInformations.getString(levelInformations.getColumnIndex("locked"));
+                    timeElapsed = Integer.parseInt(levelInformations.getString(levelInformations.getColumnIndex("time")));
+
+                    Log.d("TEST", "grille = " + grille);
                 }
-                is.close();
-            } catch (IOException e) {
+            } catch (SQLException e) {
                 e.printStackTrace();
+            }
+
+            Log.d("TEST", "grille go");
+            dataSet = SetNumberList(grille, isContinuing);
+            dataLocked = SetDataLocked(locked);
+            Log.d("TEST", "dataLocked ok");
+        } else if (isAlreadyStarted.equals("false")) {
+            int fileRessourceId = R.raw.list_problem_1;
+
+            InputStream is = this.getResources().openRawResource(fileRessourceId);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            String str;
+
+            if (is != null) {
+                try {
+                    while ((str = reader.readLine()) != null) {
+                        if (numberGame.equals(String.valueOf((lineNumber + 1)))) {
+                            dataSet = SetNumberList(str, isContinuing);
+                            labelGame = "Niveau " + String.valueOf(lineNumber + 1);
+                            break;
+                        } else lineNumber++;
+                    }
+                    is.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
+        myView = findViewById(R.id.sudokuGrid);
         myView.context = this;
         myView.setContent(dataSet, dataLocked, zeroCounter, String.valueOf(lineNumber));
 
@@ -87,7 +123,19 @@ public class GameActivity extends AppCompatActivity implements View.OnTouchListe
         durationGame = findViewById(R.id.durationGame);
     }
 
-    private String[][] SetNumberList(String numberString) {
+    private boolean[][] SetDataLocked(String numberString) {
+        boolean[][] locked = new boolean[9][9];
+
+        for (int columns = 0; columns < 9; columns++) {
+            for (int lines = 0; lines < 9; lines++) {
+                locked[lines][columns] = numberString.equals("0");
+            }
+        }
+
+        return locked;
+    }
+
+    private String[][] SetNumberList(String numberString, boolean isContinuing) {
         int position = 0;
         String[][] dataSet = new String[9][9];
 
@@ -95,11 +143,11 @@ public class GameActivity extends AppCompatActivity implements View.OnTouchListe
             for (int lines = 0; lines < 9; lines++) {
                 if (!numberString.substring(position, (position + 1)).equals("0")) {
                     dataSet[lines][columns] = numberString.substring(position, (position + 1));
-                    dataLocked[lines][columns] = true;
-                }
-                else {
+                    Log.d("TEST", "Number : " + numberString.substring(position, (position + 1)) + " AND POSITION " + position);
+                    if (!isContinuing) dataLocked[lines][columns] = true;
+                } else {
                     dataSet[lines][columns] = "";
-                    dataLocked[lines][columns] = false;
+                    if (!isContinuing) dataLocked[lines][columns] = false;
                     zeroCounter++;
                 }
                 position++;
@@ -109,6 +157,7 @@ public class GameActivity extends AppCompatActivity implements View.OnTouchListe
         return dataSet;
     }
 
+
     private void startTimer(Timer timer) {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -116,7 +165,7 @@ public class GameActivity extends AppCompatActivity implements View.OnTouchListe
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        durationGame.setText("Duration : " + timeElapsed + " s.");
+                        durationGame.setText("Durée : " + timeElapsed + " s.");
                         timeElapsed++;
                         myView.updateTimer(timeElapsed);
                     }

@@ -17,10 +17,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         Button continueLevel = findViewById(R.id.continueLevel);
         Button selectLevel = findViewById(R.id.selectLevel);
         selectLevel.setOnClickListener(this);
+        continueLevel.setOnClickListener(this);
 
         BDD bdd = new BDD();
         Cursor idList;
@@ -29,19 +29,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         try {
             bdd.open(this);
             idList = bdd.isEmpty();
-
             if (idList.getCount() > 0) isDBEmpty = false;
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
         continueLevel.setEnabled(!isDBEmpty);
     }
 
     @Override
     public void onClick(View v) {
+        Intent intent;
         switch (v.getId()) {
             case R.id.selectLevel:
-                Intent intent = new Intent(this, SelectLevelActivity.class);
+                intent = new Intent(this, SelectLevelActivity.class);
+                startActivity(intent);
+                break;
+            case R.id.continueLevel:
+                intent = new Intent(this, SelectContinueLevelActivity.class);
                 startActivity(intent);
                 break;
             default:
